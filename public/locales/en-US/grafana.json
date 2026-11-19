@@ -13955,6 +13955,8 @@
       "delete-label": "Delete playlist {{ name }} ",
       "edit": "Edit",
       "edit-label": "Edit playlist {{ name }} ",
+      "item-count_one": "{{count}} item",
+      "item-count_other": "{{count}} items",
       "share": "Share",
       "share-label": "Share playlist {{ name }} ",
       "start": "Start",
