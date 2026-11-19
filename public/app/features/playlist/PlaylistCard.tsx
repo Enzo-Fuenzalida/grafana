@@ -26,6 +26,14 @@ interface Props {
 
 const PlaylistCardComponent = ({ playlist, setStartPlaylist, setPlaylistToDelete }: Props) => {
   const canWrite = useCanWritePlaylists();
+  const interval = playlist.spec?.interval;
+  const itemCount = playlist.spec?.items?.length ?? 0;
+  const itemCountLabel = t('playlist-page.card.item-count', '', {
+    count: itemCount,
+    defaultValue_one: '{{count}} item',
+    defaultValue_other: '{{count}} items',
+  });
+
   return (
     <Card noMargin>
       <Card.Heading>
@@ -41,6 +49,10 @@ const PlaylistCardComponent = ({ playlist, setStartPlaylist, setPlaylistToDelete
           )}
         </Stack>
       </Card.Heading>
+      <Card.Meta>
+        {interval ? <span>{interval}</span> : null}
+        <span>{itemCountLabel}</span>
+      </Card.Meta>
       <Card.Actions>
         <Button
           variant="accent"
@@ -112,6 +124,9 @@ const PlaylistCardSkeleton: SkeletonComponent = ({ rootProps }) => {
       <Card.Heading>
         <Skeleton width={140} />
       </Card.Heading>
+      <Card.Meta>
+        <Skeleton width={96} />
+      </Card.Meta>
       <Card.Actions>
         <Stack direction="row" wrap="wrap">
           <Skeleton containerClassName={skeletonStyles.button} width={142} height={32} />
