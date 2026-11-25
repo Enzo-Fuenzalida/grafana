@@ -1,0 +1,17 @@
+# Inactive fragment. GitHub reads .github/CODEOWNERS, not this file.
+# Control: TL-BR-003
+# Policy owner: Flylo-Air
+# Policy: POL-SDLC-007
+# Standard: STD-SDLC-007
+# Copy these lines into .github/CODEOWNERS only after the Flylo-Air team exists.
+/trust-layer/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-pr-qa/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-review-control/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-test-assurance/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-release-gate/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-supply-chain/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-secrets-iac/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-threat-model/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-branch-protection/ @flylo-air/sdlc-controls
+/.cursor/skills/trust-layer-evidence-auditor/ @flylo-air/sdlc-controls
+/.github/workflows/trust-layer-pr-review.yml @flylo-air/sdlc-controls

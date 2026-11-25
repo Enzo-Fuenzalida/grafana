@@ -1,0 +1,962 @@
+# Machine-readable control catalog for pull request review.
+# Policy and standard text is owned by Flylo-Air and is not stored in this repository.
+schema_version: '1.0.0'
+policy_owner: Flylo-Air
+external_documents:
+  - id: POL-SDLC-001
+    title: Secure SDLC policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-002
+    title: Secure code review policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-003
+    title: Testing and QA policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-004
+    title: Release and change management policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-005
+    title: Dependency and supply chain policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-006
+    title: Secrets handling policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-007
+    title: Branch protection and repository access policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-008
+    title: Threat modeling and design review policy
+    owner: Flylo-Air
+    system: external
+  - id: POL-SDLC-009
+    title: Evidence and attestation policy
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-001
+    title: Evidence record standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-002
+    title: Secure review standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-003
+    title: Test evidence standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-004
+    title: Release evidence standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-005
+    title: Supply chain standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-006
+    title: Secrets handling standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-007
+    title: Branch protection standard
+    owner: Flylo-Air
+    system: external
+  - id: STD-SDLC-008
+    title: Threat model standard
+    owner: Flylo-Air
+    system: external
+controls:
+  - id: TL-REV-001
+    title: Human approval before merge
+    description: 'At least one approving review from a human who is not the pull request author is recorded before merge.'
+    sdlc_stage: review
+    applicability: 'Every pull request that can merge to main or a release branch.'
+    policy_refs:
+      - POL-SDLC-002
+    standard_refs:
+      - STD-SDLC-002
+    nist_ssdf:
+      - PW.7.1
+      - PW.7.2
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.1.1
+      - V1.10.1
+    automated_check: 'Read the pull request reviews. Pass only when an APPROVED review is from a human account other than the author. Bot approvals, including Bugbot, do not count.'
+    required_evidence: 'URL of the approving human review, or an evidence record that names the reviewer and the head SHA.'
+    owning_agent: review-control
+  - id: TL-REV-002
+    title: Author is not the approver
+    description: 'The pull request author does not satisfy the approval requirement by approving their own change.'
+    sdlc_stage: review
+    applicability: 'Every pull request that can merge to main or a release branch.'
+    policy_refs:
+      - POL-SDLC-002
+    standard_refs:
+      - STD-SDLC-002
+    nist_ssdf:
+      - PW.7.2
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.10.1
+    automated_check: 'Compare approving review authors to the pull request author. A self-approval is a gap even when GitHub counts it toward the required review count.'
+    required_evidence: 'Review list showing the approver login and the author login.'
+    owning_agent: review-control
+  - id: TL-REV-003
+    title: Security-sensitive diff review
+    description: 'Diffs that touch authentication, authorization, injection sinks, cryptography, or workflow credentials get a review that addresses those risks.'
+    sdlc_stage: review
+    applicability: 'Pull requests whose diff touches auth, access control, SQL or command execution, rendering of untrusted content, cryptography, or GitHub Actions permissions. Other diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-002
+    standard_refs:
+      - STD-SDLC-002
+    nist_ssdf:
+      - PW.5.1
+      - PW.7.2
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs:
+      - V4.1.1
+      - V5.3.3
+      - V5.3.4
+      - V5.3.8
+      - V6.2.2
+    automated_check: 'Inspect the diff for the sensitive paths and sinks named in the Review Control Agent. Pass only when a human review or an evidence record discusses those files. If the diff is not sensitive, record not applicable.'
+    required_evidence: 'Link to the review comment or evidence record that covers the sensitive files, plus the file paths.'
+    owning_agent: review-control
+  - id: TL-REV-004
+    title: AI review is advisory
+    description: 'Bugbot and other AI review comments do not replace human approval.'
+    sdlc_stage: review
+    applicability: 'Every pull request. The control passes when no AI review is the sole approval.'
+    policy_refs:
+      - POL-SDLC-002
+    standard_refs:
+      - STD-SDLC-002
+    nist_ssdf:
+      - PW.7.1
+      - PW.7.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.1.1
+    automated_check: 'List reviews and issue comments from bot accounts. Pass when a non-bot approval also exists, or when no bot review is present. Fail the control when the only approval is a bot.'
+    required_evidence: 'URL of the human approval, or a note that no bot review exists, tied to the head SHA.'
+    owning_agent: review-control
+  - id: TL-REV-005
+    title: Review threads closed or waived
+    description: 'Open review threads are resolved, or Flylo-Air has an unexpired waiver for the residual risk.'
+    sdlc_stage: review
+    applicability: 'Every pull request that has review threads.'
+    policy_refs:
+      - POL-SDLC-002
+    standard_refs:
+      - STD-SDLC-002
+    nist_ssdf:
+      - PO.4.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'Read pull request review threads. Pass when none are unresolved. A waiver record may waive specific threads. Unresolved threads without a waiver are a gap.'
+    required_evidence: 'Thread state from the pull request, or a waiver evidence record citing POL-SDLC-002.'
+    owning_agent: review-control
+  - id: TL-TST-001
+    title: Behavioral changes have tests
+    description: 'A change to executable behavior updates or adds an automated test that fails if the new behavior regresses.'
+    sdlc_stage: test
+    applicability: 'Pull requests that change Go, TypeScript, or Python behavior. Documentation-only diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-003
+    standard_refs:
+      - STD-SDLC-003
+    nist_ssdf:
+      - PW.8.1
+      - PW.8.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.1.1
+    automated_check: 'Compare production paths in the diff with test paths. Missing tests are a gap unless an evidence record explains the exception. A test file change is not a pass until the test is related to the behavior.'
+    required_evidence: 'Paths of the tests, or a gap or waiver record for TL-TST-001 on the head SHA.'
+    owning_agent: test-assurance
+  - id: TL-TST-002
+    title: Required CI is green on the head
+    description: 'The head SHA has successful required checks for the kinds of code it changes.'
+    sdlc_stage: test
+    applicability: 'Pull requests that change Go or frontend code, or the workflows that test them.'
+    policy_refs:
+      - POL-SDLC-003
+    standard_refs:
+      - STD-SDLC-003
+    nist_ssdf:
+      - PO.3.1
+      - PW.8.2
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V14.1.1
+    automated_check: 'Read check runs on the head SHA. Go changes need Backend unit tests (short). Frontend changes need Frontend lint and typecheck. Pending or failing checks are a gap. Short Go tests are not integration evidence.'
+    required_evidence: 'URLs of the successful check runs for the head SHA.'
+    owning_agent: test-assurance
+  - id: TL-TST-003
+    title: Negative tests for trust boundaries
+    description: 'Changes to authorization, query construction, or output encoding include a test that asserts the unsafe case is rejected.'
+    sdlc_stage: test
+    applicability: 'Pull requests that touch access checks, SQL or command construction, or HTML rendering. Other diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-003
+    standard_refs:
+      - STD-SDLC-003
+    nist_ssdf:
+      - PW.8.2
+      - RV.1.2
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs:
+      - V4.1.5
+      - V5.3.3
+      - V5.3.4
+    automated_check: 'If the diff touches a trust boundary, look for a test that asserts denial, injection failure, or encoding. Unit-test success alone is not enough.'
+    required_evidence: 'Test name and file that asserts the negative case, or a gap record.'
+    owning_agent: test-assurance
+  - id: TL-TST-004
+    title: Missing tests are recorded
+    description: 'A change without tests is a recorded gap or waiver, not silence.'
+    sdlc_stage: test
+    applicability: 'Pull requests where TL-TST-001 applies and no related test was added.'
+    policy_refs:
+      - POL-SDLC-003
+    standard_refs:
+      - STD-SDLC-003
+    nist_ssdf:
+      - PW.8.2
+      - PO.4.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'If tests cover the change, record a pass. If they do not, pass only when a gap or waiver evidence record for TL-TST-001 or TL-TST-004 exists on the head SHA.'
+    required_evidence: 'The test paths, or the gap or waiver record. Silence is a gap.'
+    owning_agent: test-assurance
+  - id: TL-TST-005
+    title: Contract tests for API and storage changes
+    description: 'API, storage, migration, and protobuf changes have an integration or contract test. Short unit shards do not satisfy this control.'
+    sdlc_stage: test
+    applicability: 'Pull requests that change pkg/api, pkg/storage, pkg/services/sqlstore/migrations, or protobuf definitions. Other diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-003
+    standard_refs:
+      - STD-SDLC-003
+    nist_ssdf:
+      - PW.8.1
+      - PW.8.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.1.4
+    automated_check: 'Detect the paths above. Require a test that exercises the contract beyond go test -short. Fieldsphere CI short shards are not evidence for this control.'
+    required_evidence: 'Integration or contract test path and the command or check run that executed it.'
+    owning_agent: test-assurance
+  - id: TL-TST-006
+    title: QA evidence for user-visible changes
+    description: 'User-visible behavior has QA evidence from a person or a QA agent, separate from lint and unit tests.'
+    sdlc_stage: test
+    applicability: 'Pull requests that change public/app, packages/grafana-ui, or user-facing package behavior. Other diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-003
+    standard_refs:
+      - STD-SDLC-003
+    nist_ssdf:
+      - PW.8.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'Look for an evidence record from test-assurance or a named QA reviewer describing what was exercised. Bugbot comments and typecheck do not count.'
+    required_evidence: 'Evidence record or review note naming the scenario that was exercised and the head SHA.'
+    owning_agent: test-assurance
+  - id: TL-REL-001
+    title: Change record links the decision inputs
+    description: 'The change record ties the pull request, head SHA, approvals, and CI result together.'
+    sdlc_stage: release
+    applicability: 'Every pull request. Release publication adds the release workflow run to the same record.'
+    policy_refs:
+      - POL-SDLC-004
+    standard_refs:
+      - STD-SDLC-004
+    nist_ssdf:
+      - PO.3.3
+      - PS.3.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.10.1
+    automated_check: 'Confirm the report names the repository, pull request number, head SHA, approval URL, and check-run URL. A release or tag pull request must also name the release workflow run.'
+    required_evidence: 'Those URLs in the evidence record or in the control-gap report for this head SHA.'
+    owning_agent: release-gate
+  - id: TL-REL-002
+    title: Release candidate is verified before publish
+    description: 'A release is not published until the package verification workflow has succeeded for that artifact.'
+    sdlc_stage: release
+    applicability: 'Pull requests that cut a release, create a tag, or change release verification. Ordinary product pull requests are not applicable.'
+    policy_refs:
+      - POL-SDLC-004
+    standard_refs:
+      - STD-SDLC-004
+    nist_ssdf:
+      - PW.8.2
+      - PW.9.1
+    slsa:
+      - SLSA v1.0 Build L1 provenance exists
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V14.1.1
+      - V1.14.4
+    automated_check: 'For a release change, require a successful release verification run for the artifact. Do not treat pull request unit tests as release verification.'
+    required_evidence: 'URL of the successful verify run and the artifact name.'
+    owning_agent: release-gate
+  - id: TL-REL-003
+    title: Rollback path is known
+    description: 'The change can be reverted, or a non-reversible migration has a written rollback note.'
+    sdlc_stage: release
+    applicability: 'Every pull request. Database migrations and other non-reversible steps need an explicit note.'
+    policy_refs:
+      - POL-SDLC-004
+    standard_refs:
+      - STD-SDLC-004
+    nist_ssdf:
+      - PO.5.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'If the diff does not include a migration or destructive data change, record that git revert is the rollback. If it does, require an evidence record that states the rollback steps.'
+    required_evidence: 'Either the statement that git revert is sufficient, or the rollback note bound to the head SHA.'
+    owning_agent: release-gate
+  - id: TL-REL-004
+    title: Releaser is not the author
+    description: 'The account that merges to a release branch or publishes the release is not the author of the change.'
+    sdlc_stage: release
+    applicability: 'Merges to release branches and release publication. Open pull requests into main are not applicable until that merge or publish happens.'
+    policy_refs:
+      - POL-SDLC-004
+    standard_refs:
+      - STD-SDLC-004
+    nist_ssdf:
+      - PO.2.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'On a release-branch pull request, compare the author with the merging actor when it is known. Before merge, record not applicable with the reason that the releaser is not known yet. Do not pass early.'
+    required_evidence: 'Author login and merger or publisher login, or an explicit not applicable finding before merge.'
+    owning_agent: release-gate
+  - id: TL-REL-005
+    title: User-visible changes are noted
+    description: 'A user-visible change has a changelog or release-note entry, or an explicit statement that it is internal.'
+    sdlc_stage: release
+    applicability: 'Pull requests that change user-visible behavior.'
+    policy_refs:
+      - POL-SDLC-004
+    standard_refs:
+      - STD-SDLC-004
+    nist_ssdf:
+      - PS.3.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'If the diff is user-visible, look for a changelog entry or a release-note label. Internal-only changes need a sentence in the pull request body. Missing both is a gap.'
+    required_evidence: 'Link to the changelog hunk or the pull request statement.'
+    owning_agent: release-gate
+  - id: TL-REL-006
+    title: Published artifacts have integrity data
+    description: 'A published package has a checksum or signature a consumer can recompute.'
+    sdlc_stage: release
+    applicability: 'Pull requests that publish or repackage release artifacts. Other pull requests are not applicable.'
+    policy_refs:
+      - POL-SDLC-004
+    standard_refs:
+      - STD-SDLC-004
+    nist_ssdf:
+      - PS.2.1
+    slsa:
+      - SLSA v1.0 Build L1 provenance exists
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V10.3.2
+      - V14.1.5
+    automated_check: 'For a publish change, require checksum or signature output from the build. Source-tree changes without a published artifact are not applicable.'
+    required_evidence: 'URL or path of the checksum or signature for the artifact.'
+    owning_agent: release-gate
+  - id: TL-SC-001
+    title: Dependency changes are reviewed
+    description: 'Changes to manifests, lockfiles, Dockerfiles, and GitHub Actions are reviewed by a human.'
+    sdlc_stage: review
+    applicability: 'Pull requests that change go.mod, go.sum, package.json, yarn.lock, a Dockerfile, Renovate config, or a third-party action pin.'
+    policy_refs:
+      - POL-SDLC-005
+    standard_refs:
+      - STD-SDLC-005
+    nist_ssdf:
+      - PW.4.1
+      - PW.4.4
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs:
+      - V14.2.1
+      - V14.2.4
+    automated_check: 'Detect dependency files. Pass only with a human approval. An automerged Renovate pull request without a human approval is a gap.'
+    required_evidence: 'Human review URL and the dependency diff.'
+    owning_agent: supply-chain
+  - id: TL-SC-002
+    title: Known vulnerabilities are scanned
+    description: 'Changed Go modules are scanned with govulncheck, and a missing scanner is a gap rather than a pass.'
+    sdlc_stage: review
+    applicability: 'Pull requests that change Go code or JavaScript dependencies.'
+    policy_refs:
+      - POL-SDLC-005
+    standard_refs:
+      - STD-SDLC-005
+    nist_ssdf:
+      - RV.1.1
+      - RV.1.2
+    slsa: []
+    soc2:
+      - CC7.1
+    owasp_asvs:
+      - V1.14.3
+      - V14.2.1
+    automated_check: 'For Go changes, require a successful govulncheck run on the head SHA. If the check did not run, record a gap. JavaScript dependency changes have no active npm audit workflow in this fork, so they are a gap unless an evidence record attaches a scan.'
+    required_evidence: 'Check-run URL or attached scan output for the head SHA.'
+    owning_agent: supply-chain
+  - id: TL-SC-003
+    title: Lockfiles match manifests
+    description: 'A manifest change updates the corresponding lockfile in the same pull request.'
+    sdlc_stage: review
+    applicability: 'Pull requests that change go.mod, package.json, or another manifest that has a lockfile.'
+    policy_refs:
+      - POL-SDLC-005
+    standard_refs:
+      - STD-SDLC-005
+    nist_ssdf:
+      - PW.4.4
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V14.2.4
+    automated_check: 'If go.mod changes, require go.sum in the same diff. If package.json changes, require yarn.lock. A manifest edit without its lockfile is a gap.'
+    required_evidence: 'The manifest and lockfile paths in the diff.'
+    owning_agent: supply-chain
+  - id: TL-SC-004
+    title: Releases have an SBOM
+    description: 'A published release includes a software bill of materials for the third-party components it ships.'
+    sdlc_stage: release
+    applicability: 'Release publication only. Ordinary pull requests are not applicable.'
+    policy_refs:
+      - POL-SDLC-005
+    standard_refs:
+      - STD-SDLC-005
+    nist_ssdf:
+      - PW.4.1
+      - PS.3.2
+    slsa: []
+    soc2:
+      - CC7.1
+      - CC8.1
+    owasp_asvs:
+      - V14.2.5
+    automated_check: 'On a release change, look for an SBOM artifact attached to the release. The archived upstream SBOM workflow is not evidence that this fork produced an SBOM.'
+    required_evidence: 'URL of the SBOM artifact for the version being published.'
+    owning_agent: supply-chain
+  - id: TL-SC-005
+    title: Build provenance is recorded
+    description: 'A published artifact has provenance that says how it was built.'
+    sdlc_stage: release
+    applicability: 'Release publication only. Ordinary pull requests are not applicable.'
+    policy_refs:
+      - POL-SDLC-005
+    standard_refs:
+      - STD-SDLC-005
+    nist_ssdf:
+      - PS.3.2
+      - PS.2.1
+    slsa:
+      - SLSA v1.0 Build L1 provenance exists
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V10.3.2
+    automated_check: 'On a release change, look for a provenance document bound to the artifact digest. Absence is a gap. Do not claim a higher SLSA build level than the artifact actually has.'
+    required_evidence: 'Provenance file or attestation URL and the artifact digest.'
+    owning_agent: supply-chain
+  - id: TL-SC-006
+    title: Third-party actions are pinned
+    description: 'Third-party GitHub Actions are pinned to a commit SHA.'
+    sdlc_stage: review
+    applicability: 'Pull requests that add or change a uses clause pointing outside this repository.'
+    policy_refs:
+      - POL-SDLC-005
+    standard_refs:
+      - STD-SDLC-005
+    nist_ssdf:
+      - PO.3.2
+      - PW.4.4
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs:
+      - V14.2.4
+    automated_check: 'Parse uses clauses in the diff. A third-party action must use a 40-character commit SHA. Local actions under .github/actions are exempt. Floating tags and branches are a gap.'
+    required_evidence: 'The workflow file line and the pin.'
+    owning_agent: supply-chain
+  - id: TL-SEC-001
+    title: Diff contains no secrets
+    description: 'The diff does not add private keys, tokens, passwords, or other credentials.'
+    sdlc_stage: review
+    applicability: 'Every pull request.'
+    policy_refs:
+      - POL-SDLC-006
+    standard_refs:
+      - STD-SDLC-006
+    nist_ssdf:
+      - PS.1.1
+      - PW.5.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V6.4.1
+      - V10.2.3
+    automated_check: 'Read the diff for private-key blocks, cloud tokens, and credential assignments. A match is a fail. A clean review is a pass only after the diff was inspected. Do not print the secret in the report.'
+    required_evidence: 'Statement that the diff was inspected, with the head SHA. On a hit, the file path only.'
+    owning_agent: secrets-iac
+  - id: TL-SEC-002
+    title: Secret scanning runs
+    description: 'A secret scanner runs on the pull request and its result is retained.'
+    sdlc_stage: review
+    applicability: 'Every pull request that changes files.'
+    policy_refs:
+      - POL-SDLC-006
+    standard_refs:
+      - STD-SDLC-006
+    nist_ssdf:
+      - RV.1.2
+    slsa: []
+    soc2:
+      - CC7.1
+      - CC7.2
+    owasp_asvs:
+      - V6.4.1
+    automated_check: 'Look for a secret-scanning check run on the head SHA. The archived Trufflehog workflow is not an active control. No run is a gap.'
+    required_evidence: 'URL of the scanner run or its uploaded result for the head SHA.'
+    owning_agent: secrets-iac
+  - id: TL-SEC-003
+    title: Workflow permissions stay narrow
+    description: 'Workflow changes keep GITHUB_TOKEN permissions at the minimum the job needs.'
+    sdlc_stage: review
+    applicability: 'Pull requests that change files under .github/workflows or .github/actions.'
+    policy_refs:
+      - POL-SDLC-006
+    standard_refs:
+      - STD-SDLC-006
+    nist_ssdf:
+      - PO.3.2
+      - PO.5.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V4.1.3
+    automated_check: 'Read the permissions block. contents write, packages write, or id-token write need a justification evidence record. pull_request_target together with a secret or a write token is a fail.'
+    required_evidence: 'The workflow path and the permissions block, plus a justification record when rights are wider than read.'
+    owning_agent: secrets-iac
+  - id: TL-SEC-004
+    title: Trust-layer checks need no secrets
+    description: 'The trust-layer evidence workflow runs without repository secrets.'
+    sdlc_stage: review
+    applicability: 'Every pull request. The control looks at .github/workflows/trust-layer-pr-review.yml.'
+    policy_refs:
+      - POL-SDLC-006
+    standard_refs:
+      - STD-SDLC-006
+    nist_ssdf:
+      - PO.3.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V6.4.1
+    automated_check: 'Search the trust-layer workflow for a secrets context. Any use is a fail. GITHUB_TOKEN is the workflow token and is allowed.'
+    required_evidence: 'The workflow path and the statement that no secrets context is referenced.'
+    owning_agent: secrets-iac
+  - id: TL-SEC-005
+    title: Deploy trust is not widened silently
+    description: 'Changes to deploy, cloud identity, or package publish permissions are called out and justified.'
+    sdlc_stage: review
+    applicability: 'Pull requests that change deploy workflows, Docker publish, or OIDC token permissions.'
+    policy_refs:
+      - POL-SDLC-006
+    standard_refs:
+      - STD-SDLC-006
+    nist_ssdf:
+      - PO.5.1
+      - PW.6.1
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs:
+      - V1.2.1
+      - V4.1.3
+    automated_check: 'Flag new id-token write, cloud credential files, and deploy jobs. Pass only with an evidence record that states what identity the workflow can assume.'
+    required_evidence: 'The diff hunk and the justification record.'
+    owning_agent: secrets-iac
+  - id: TL-DES-001
+    title: Threat model for security-relevant design
+    description: 'A security-relevant design change has a threat model or an unexpired Flylo-Air waiver.'
+    sdlc_stage: review
+    applicability: 'New external interfaces, authentication changes, new data stores, or trust-boundary moves. Bug fixes inside an existing control are not applicable.'
+    policy_refs:
+      - POL-SDLC-008
+    standard_refs:
+      - STD-SDLC-008
+    nist_ssdf:
+      - PW.1.1
+      - PW.2.1
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs:
+      - V1.1.2
+      - V1.1.5
+    automated_check: 'Decide applicability from the diff. When it applies, require an evidence record that names assets, actors, and threats, or a waiver. Do not pass from a design guess that was not recorded.'
+    required_evidence: 'Evidence record bound to the head SHA, or a waiver citing POL-SDLC-008.'
+    owning_agent: threat-model
+  - id: TL-DES-002
+    title: Abuse cases for new interfaces
+    description: 'A new trust boundary or external interface lists the abuse cases a reviewer should test.'
+    sdlc_stage: review
+    applicability: 'New routes, APIs, datasources, or inbound webhooks. Other diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-008
+    standard_refs:
+      - STD-SDLC-008
+    nist_ssdf:
+      - PW.1.2
+      - PW.2.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.1.4
+      - V1.14.1
+    automated_check: 'If a new interface appears, require an evidence record listing abuse cases such as auth bypass, injection, and unexpected callers. Otherwise record not applicable.'
+    required_evidence: 'Evidence record listing the interface and the abuse cases.'
+    owning_agent: threat-model
+  - id: TL-DES-003
+    title: New data flows are classified
+    description: 'A new data flow states what data it carries and what must not be logged.'
+    sdlc_stage: review
+    applicability: 'Pull requests that add fields or logs for credentials, tokens, personal data, or customer content. Other diffs are not applicable.'
+    policy_refs:
+      - POL-SDLC-008
+    standard_refs:
+      - STD-SDLC-008
+    nist_ssdf:
+      - PW.1.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.8.1
+      - V1.5.1
+    automated_check: 'If the diff adds such a flow, require an evidence record with the classification and logging constraint. Do not invent the classification without recording it.'
+    required_evidence: 'Evidence record naming the field or log site, the classification, and the logging constraint.'
+    owning_agent: threat-model
+  - id: TL-BR-001
+    title: Protected branches reject direct pushes
+    description: 'Commits reach main and release branches only through a pull request.'
+    sdlc_stage: review
+    applicability: 'The repository rules on main and release branches, checked from every code pull request.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PS.1.1
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.10.1
+    automated_check: 'Compare live branch rules with trust-layer/branch-protection/rulesets. The pull_request rule must be active. A ruleset file in git is not evidence that GitHub enforces it.'
+    required_evidence: 'Live rules API output for the branch, or a recorded gap when the API shows no pull_request rule.'
+    owning_agent: branch-protection
+  - id: TL-BR-002
+    title: Required checks gate merge
+    description: 'Main and release branches require the fork CI checks and the trust-layer evidence check.'
+    sdlc_stage: review
+    applicability: 'The repository rules on main and release branches.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PO.4.1
+      - PW.8.2
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V14.1.1
+    automated_check: 'Live required status checks must include Backend unit tests (short), Frontend lint and typecheck, and Trust layer evidence. Missing checks are a gap.'
+    required_evidence: 'Live required-status-check contexts compared with the ruleset JSON.'
+    owning_agent: branch-protection
+  - id: TL-BR-003
+    title: Code owner review is required
+    description: 'Protected branches require a code owner review for paths that have owners.'
+    sdlc_stage: review
+    applicability: 'The repository rules on main and release branches, plus the CODEOWNERS fragment for trust-layer paths.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PW.7.2
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.10.1
+    automated_check: 'The live pull_request rule must set require_code_owner_review. The trust-layer CODEOWNERS fragment must stay mapped to this control. It is not active until copied into .github/CODEOWNERS.'
+    required_evidence: 'Live rule parameters and the path of the CODEOWNERS fragment.'
+    owning_agent: branch-protection
+  - id: TL-BR-004
+    title: Force-push and deletion are blocked
+    description: 'Protected branches cannot be force-pushed or deleted.'
+    sdlc_stage: review
+    applicability: 'The repository rules on main and release branches.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PS.1.1
+    slsa:
+      - SLSA v1.0 Source retained history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.10.1
+    automated_check: 'Live rules must include non_fast_forward and deletion. Absence of either is a gap.'
+    required_evidence: 'Live rule types for the branch.'
+    owning_agent: branch-protection
+  - id: TL-BR-005
+    title: Release branches match main
+    description: 'Release branches use the same review and status rules as main.'
+    sdlc_stage: review
+    applicability: 'The release-branch ruleset, checked from every code pull request and from any pull request into a release branch.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PS.1.1
+      - PW.7.2
+    slsa:
+      - SLSA v1.0 Source verified history
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.10.1
+    automated_check: 'Compare trust-layer/branch-protection/rulesets/release-branches.json with live rules on release branches. A main ruleset that does not cover release-* is a gap.'
+    required_evidence: 'Live rules for a release branch, or a gap record when no release ruleset is installed.'
+    owning_agent: branch-protection
+  - id: TL-BR-006
+    title: Ruleset drift is detected
+    description: 'The live GitHub rules match the ruleset JSON in this repository.'
+    sdlc_stage: review
+    applicability: 'Every code pull request.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PO.3.3
+      - PS.1.1
+    slsa: []
+    soc2:
+      - CC8.1
+      - CC7.1
+    owasp_asvs: []
+    automated_check: 'Diff the ruleset JSON against GET /repos/fieldsphere/grafana/rules/branches/main. Unreadable live rules are a gap, not a pass. Do not apply or edit the live ruleset.'
+    required_evidence: 'The JSON path and the live rule types, or the API error recorded as a gap.'
+    owning_agent: branch-protection
+  - id: TL-BR-007
+    title: Bypass actors are named
+    description: 'Anyone who can bypass branch rules is named in the ruleset JSON, with a reason.'
+    sdlc_stage: review
+    applicability: 'The ruleset files and the live bypass actor list.'
+    policy_refs:
+      - POL-SDLC-007
+    standard_refs:
+      - STD-SDLC-007
+    nist_ssdf:
+      - PO.2.1
+      - PS.1.1
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V4.1.3
+    automated_check: 'The desired rulesets ship with an empty bypass list. A non-empty live bypass list without a matching JSON entry and a Flylo-Air waiver is a gap.'
+    required_evidence: 'bypass_actors from the ruleset file and from the live ruleset.'
+    owning_agent: branch-protection
+  - id: TL-EVD-001
+    title: Evidence records match the schema
+    description: 'Every evidence file validates against trust-layer/evidence/schema.json.'
+    sdlc_stage: review
+    applicability: 'Every pull request. Invalid records fail the trust-layer workflow.'
+    policy_refs:
+      - POL-SDLC-009
+    standard_refs:
+      - STD-SDLC-001
+    nist_ssdf:
+      - PO.3.3
+      - PO.4.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'Run python3 trust-layer/evidence/validate.py on trust-layer/evidence/records and the example record. A schema violation is a fail.'
+    required_evidence: 'Validator output for the head SHA.'
+    owning_agent: evidence-auditor
+  - id: TL-EVD-002
+    title: In-scope controls are covered or marked
+    description: 'Each in-scope control has a pass, fail, gap, waiver, or not applicable result. Silence is a gap.'
+    sdlc_stage: review
+    applicability: 'Pull requests that change code, workflows, or trust-layer controls.'
+    policy_refs:
+      - POL-SDLC-001
+      - POL-SDLC-009
+    standard_refs:
+      - STD-SDLC-001
+    nist_ssdf:
+      - PO.4.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs:
+      - V1.1.1
+    automated_check: 'The evidence workflow lists catalog controls with no record on the head SHA. The evidence auditor still decides which of those are in scope from the other agents reports.'
+    required_evidence: 'One evidence record or an explicit not applicable row per in-scope control, bound to the head SHA.'
+    owning_agent: evidence-auditor
+  - id: TL-EVD-003
+    title: Manual checks are attested
+    description: 'A manual or hybrid check names the reviewer, the statement, and the time.'
+    sdlc_stage: review
+    applicability: 'Evidence records whose check method is manual or hybrid.'
+    policy_refs:
+      - POL-SDLC-009
+    standard_refs:
+      - STD-SDLC-001
+    nist_ssdf:
+      - PO.4.2
+      - PW.7.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'The schema rejects manual or hybrid records whose attestation status is not attested. The auditor confirms the reviewer is not the pull request author for review controls.'
+    required_evidence: 'The attestation object inside the evidence record.'
+    owning_agent: evidence-auditor
+  - id: TL-EVD-004
+    title: Evidence is bound to the head SHA
+    description: 'An evidence record names the pull request head commit, not a floating branch name.'
+    sdlc_stage: review
+    applicability: 'Every evidence record.'
+    policy_refs:
+      - POL-SDLC-009
+    standard_refs:
+      - STD-SDLC-001
+    nist_ssdf:
+      - PO.3.3
+    slsa:
+      - SLSA v1.0 Source version controlled
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'Compare record commit_sha with the pull request head SHA. A mismatch does not cover the control.'
+    required_evidence: 'commit_sha on the record and the head SHA of the pull request.'
+    owning_agent: evidence-auditor
+  - id: TL-EVD-005
+    title: Control-gap report is on the pull request
+    description: 'Each framework agent publishes its control-gap report for the head SHA.'
+    sdlc_stage: review
+    applicability: 'Every code pull request.'
+    policy_refs:
+      - POL-SDLC-009
+    standard_refs:
+      - STD-SDLC-001
+    nist_ssdf:
+      - PO.4.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'The workflow posts one evidence summary. That summary does not pass this control. Pass only when all eight agent reports are present for the head SHA.'
+    required_evidence: 'The eight control-gap reports, each with control id, finding, severity, evidence link, and remediation.'
+    owning_agent: evidence-auditor
+  - id: TL-EVD-006
+    title: Waivers name approver, expiry, and risk
+    description: 'A waived control names the Flylo-Air approver, an expiry time, and the residual risk.'
+    sdlc_stage: review
+    applicability: 'Evidence records whose result is waived.'
+    policy_refs:
+      - POL-SDLC-009
+    standard_refs:
+      - STD-SDLC-001
+    nist_ssdf:
+      - PO.4.2
+    slsa: []
+    soc2:
+      - CC8.1
+    owasp_asvs: []
+    automated_check: 'The schema requires waiver approver, expires, residual_risk, and policy_refs. The auditor rejects an expiry that is already past.'
+    required_evidence: 'The waiver object on the evidence record.'
+    owning_agent: evidence-auditor

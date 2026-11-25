@@ -1,0 +1,22 @@
+{
+  "policy_owner": "Flylo-Air",
+  "policy_refs": ["POL-SDLC-007"],
+  "standard_refs": ["STD-SDLC-007"],
+  "rulesets": [
+    {
+      "file": "rulesets/main.json",
+      "refs": ["refs/heads/main"],
+      "controls": ["TL-BR-001", "TL-BR-002", "TL-BR-003", "TL-BR-004", "TL-BR-006", "TL-BR-007"]
+    },
+    {
+      "file": "rulesets/release-branches.json",
+      "refs": ["refs/heads/release-*.*.*"],
+      "controls": ["TL-BR-001", "TL-BR-002", "TL-BR-003", "TL-BR-004", "TL-BR-005", "TL-BR-006", "TL-BR-007"]
+    }
+  ],
+  "codeowners_fragment": {
+    "file": "CODEOWNERS",
+    "controls": ["TL-BR-003"],
+    "note": "Inactive until a Flylo-Air maintainer copies it into .github/CODEOWNERS."
+  }
+}
