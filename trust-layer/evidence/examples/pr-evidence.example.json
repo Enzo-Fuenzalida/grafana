@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "control_id": "TL-EVD-001",
+  "policy_refs": ["POL-SDLC-009"],
+  "standard_refs": ["STD-SDLC-001"],
+  "sdlc_stage": "review",
+  "repository": "fieldsphere/grafana",
+  "pull_request": 1,
+  "commit_sha": "0123456789abcdef0123456789abcdef01234567",
+  "check": {
+    "method": "automated",
+    "summary": "Ran trust-layer/evidence/validate.py against this record.",
+    "procedure_ref": "STD-SDLC-001"
+  },
+  "result": "pass",
+  "artifacts": [
+    {
+      "name": "example-record",
+      "uri": "trust-layer/evidence/examples/pr-evidence.example.json"
+    }
+  ],
+  "agent": {
+    "id": "evidence-auditor",
+    "version": "1.0.0"
+  },
+  "timestamp": "2026-11-25T00:40:00Z",
+  "attestation": {
+    "status": "not_required"
+  }
+}

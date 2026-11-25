@@ -1,0 +1,121 @@
+# Evidence litmus check for pull requests. Does not apply branch rules and does not read repository credentials.
+# Policy owner for the controls it reports is Flylo-Air. Policy text is not in this repository.
+name: Trust layer PR review
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'release-*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trust-layer-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evidence:
+    name: Trust layer evidence
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    outputs:
+      code_touched: ${{ steps.summary.outputs.code_touched }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Validate evidence schema, records, and tests
+        run: |
+          python3 -m unittest discover -s trust-layer/evidence -p 'test_*.py' -v
+          python3 trust-layer/evidence/validate.py \
+            --records-dir trust-layer/evidence/records \
+            trust-layer/evidence/examples/pr-evidence.example.json
+
+      - name: List changed files
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+          git diff --name-only "origin/${{ github.base_ref }}" HEAD > /tmp/changed-files.txt
+
+      - name: Write control-gap summary
+        id: summary
+        run: |
+          python3 trust-layer/evidence/summarize.py \
+            --files-from /tmp/changed-files.txt \
+            --head-sha "${{ github.event.pull_request.head.sha }}" \
+            --repository "${{ github.repository }}" \
+            --pull-request "${{ github.event.pull_request.number }}" \
+            --output /tmp/trust-layer-summary.md
+
+      - name: Upload control-gap summary
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trust-layer-control-gap-summary
+          path: /tmp/trust-layer-summary.md
+          if-no-files-found: error
+
+  comment:
+    name: Post control-gap summary
+    needs: evidence
+    if: needs.evidence.outputs.code_touched == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Download control-gap summary
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: trust-layer-control-gap-summary
+          path: /tmp/trust-layer-summary
+
+      - name: Post or update the pull request comment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          marker = "<!-- trust-layer-control-gap -->"
+          body = open("/tmp/trust-layer-summary/trust-layer-summary.md", encoding="utf-8").read()
+          if marker not in body:
+              raise SystemExit("summary is missing the trust-layer marker")
+          token = os.environ["GITHUB_TOKEN"]
+          owner, repo = os.environ["REPOSITORY"].split("/", 1)
+          number = os.environ["PULL_REQUEST"]
+          base = f"https://api.github.com/repos/{owner}/{repo}"
+
+          def request(method, url, payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(
+                  url,
+                  data=data,
+                  method=method,
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {token}",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                      "User-Agent": "trust-layer-evidence",
+                  },
+              )
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  raw = response.read().decode()
+              return json.loads(raw) if raw else None
+
+          comments = request("GET", f"{base}/issues/{number}/comments")
+          match = next((item for item in comments if marker in item.get("body", "")), None)
+          if match:
+              request("PATCH", f"{base}/issues/comments/{match['id']}", {"body": body})
+          else:
+              request("POST", f"{base}/issues/{number}/comments", {"body": body})
+          PY
